@@ -115,7 +115,11 @@ def handle_message(event):
             TextSendMessage(text=generated_text)
         )
     else:
-        return 'similarity_matches'
+        for match in result:
+            line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"Question: {match['question']}\nAnswer: {match['answer']}\nScore: {match['score']}")
+        )
 
 
 if __name__ == "__main__":
