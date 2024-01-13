@@ -4,3 +4,4 @@ line-bot-sdk
 configparser
 gunicorn
 pinecone-client
+db
