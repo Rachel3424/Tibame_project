@@ -10,6 +10,7 @@ import openai
 from openai import OpenAI
 import configparser
 import pinecone
+from db import db
 
 # Setup
 config = configparser.ConfigParser()
