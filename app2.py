@@ -6,8 +6,8 @@ from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-import openai
-from openai import OpenAI
+import openai # OLD version
+from openai import OpenAI # NEW version
 import configparser
 import pinecone
 from db import db
@@ -19,6 +19,9 @@ config.read('config.ini')
 channel_access_token = config.get('line-bot','channel_access_token')
 secret = config.get('line-bot','channel_secret')
 
+client = OpenAI(organization=config.get('OpenAI','organization'),
+                api_key=config.get('OpenAI','api_key'))
+
 # Flask
 app = Flask(__name__)
 
@@ -28,6 +31,7 @@ handler = WebhookHandler(secret)
 
 @app.route("/", methods=['POST'])
 def callback():
+    print(request.json)
     # get X-Line-Signature header value
     signature = request.headers['X-Line-Signature']
 
@@ -53,16 +57,17 @@ def init_pinecone(index_name):
     index = pinecone.Index(index_name)
     return index
 
+# 要更改
 def get_embedding(question):
-    openai.api_key = config.get("OpenAI", "api_key")
-    response = openai.Embedding.create(
+    response = client.embeddings.create(
     model="text-embedding-ada-002",
     input = question
     )
     # 提取生成文本中的嵌入向量
-    embedding = response['data'][0]['embedding']
+    embedding = response.data[0].embedding
     
     return embedding
+
 
 def search_from_pinecone(index, query_embedding, k=1):
     results = index.query(vector=query_embedding,
@@ -98,8 +103,6 @@ def handle_message(event):
     result = fetch_db_or_ai(user_input)
 
     if result == 'ai':
-        client = OpenAI(organization=config.get('OpenAI','organization'),
-                            api_key=config.get('OpenAI','api_key'))
         response = client.chat.completions.create(
             model=config.get('OpenAI','model'),
             messages=[
@@ -124,4 +127,4 @@ def handle_message(event):
 
 
 if __name__ == "__main__":
-  app.run()
+  app.run(port = 3000, debug=True)
