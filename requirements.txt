@@ -3,5 +3,4 @@ openai
 line-bot-sdk
 configparser
 gunicorn
-pinecone-client
-db
+pinecone-client==2.2.4
